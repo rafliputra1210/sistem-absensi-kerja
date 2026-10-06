@@ -6,7 +6,7 @@ use App\Http\Controllers\KioskController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminKaryawanController;
-
+use App\Http\Controllers\LeaveController;
 // Rute Halaman Awal & Auth
 Route::get('/', function () { return redirect('/login'); }); // Mengganti tampilan awal "Laravel"
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
@@ -21,6 +21,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/kantor/dashboard', function() { return view('kantor.dashboard'); })->name('kantor.dashboard');
         Route::post('/kantor/clock-in', [AttendanceController::class, 'clockInKantor'])->name('kantor.clockin');
         Route::post('/kantor/clock-out', [AttendanceController::class, 'clockOut'])->name('kantor.clockout');
+        Route::post('/izin/store', [LeaveController::class, 'store'])->name('izin.store');
     });
 
     // 2. Rute Khusus Supir
@@ -33,9 +34,10 @@ Route::middleware(['auth'])->group(function () {
     // 3. Rute Khusus Admin/HR
 Route::middleware(['role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
-    
-    // CRUD Data Karyawan
     Route::resource('karyawan', AdminKaryawanController::class)->except(['show']);
+    Route::get('/izin', [AdminController::class, 'approvalIzin'])->name('izin.index');
+    Route::put('/izin/{id}', [AdminController::class, 'updateIzin'])->name('izin.update');
+    Route::get('/laporan', [AdminController::class, 'laporan'])->name('laporan.index');
 });
 
 });

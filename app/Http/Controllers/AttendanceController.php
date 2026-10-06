@@ -32,11 +32,23 @@ class AttendanceController extends Controller
             return back()->with('error', 'Anda sudah melakukan absen masuk hari ini.');
         }
 
+        // Simpan Foto Selfie jika ada
+        $photoPath = null;
+        if ($request->filled('photo_base64')) {
+            $image = $request->photo_base64;
+            $image = preg_replace('/^data:image\/\w+;base64,/', '', $image);
+            $image = str_replace(' ', '+', $image);
+            $imageName = 'kantor_selfies/' . uniqid() . '.jpg';
+            Storage::disk('public')->put($imageName, base64_decode($image));
+            $photoPath = $imageName;
+        }
+
         // Simpan Absen
         Attendance::create([
             'user_id' => $user->id,
             'date' => $today,
             'clock_in' => now()->toTimeString(),
+            'photo_in' => $photoPath,
             'ip_address_in' => $clientIp,
             'status' => now()->format('H:i') > '08:00' ? 'telat' : 'hadir' // Misal batas telat jam 08:00
         ]);

@@ -76,8 +76,7 @@
 <!-- 5. Form Rekapitulasi & Export -->
 <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
     <h2 class="text-lg font-bold text-gray-800 mb-4">Tarik Laporan & Rekapitulasi (Payroll)</h2>
-    <form action="#" method="POST" class="flex gap-4 items-end">
-        @csrf
+    <form action="{{ route('admin.laporan.index') }}" method="GET" class="flex gap-4 items-end">
         <div class="flex-1">
             <label class="block text-sm font-bold text-gray-700 mb-1">Mulai Tanggal</label>
             <input type="date" name="start_date" class="w-full border-gray-300 rounded-lg shadow-sm py-2 px-3 border focus:ring-blue-500 focus:border-blue-500">

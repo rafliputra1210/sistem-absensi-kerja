@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         * { font-family: 'Plus Jakarta Sans', sans-serif; }
     </style>
@@ -30,11 +31,16 @@
             <a href="#" class="block p-3 hover:bg-slate-800 rounded-lg transition">
                 📍 Pemeriksaan Supir
             </a>
-            <a href="#" class="block p-3 hover:bg-slate-800 rounded-lg transition flex justify-between items-center">
+            <a href="{{ route('admin.izin.index') }}" class="block p-3 {{ request()->routeIs('admin.izin.*') ? 'bg-blue-600 font-medium' : 'hover:bg-slate-800' }} rounded-lg transition flex justify-between items-center">
                 <span>📝 Approval Izin</span>
-                <span class="bg-red-500 text-xs px-2 py-0.5 rounded-full font-bold">3</span>
+                @php
+                    $pendingCount = \App\Models\Leave::where('status', 'pending')->count();
+                @endphp
+                @if($pendingCount > 0)
+                    <span class="bg-red-500 text-xs px-2 py-0.5 rounded-full font-bold">{{ $pendingCount }}</span>
+                @endif
             </a>
-            <a href="#" class="block p-3 hover:bg-slate-800 rounded-lg transition">
+            <a href="{{ route('admin.laporan.index') }}" class="block p-3 {{ request()->routeIs('admin.laporan.*') ? 'bg-blue-600 font-medium' : 'hover:bg-slate-800' }} rounded-lg transition">
                 📑 Rekapitulasi Laporan
             </a>
         </nav>
