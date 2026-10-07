@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
@@ -16,21 +18,42 @@ class AuthController extends Controller
         return view('auth.login');
     }
 
-    // Proses login
+    // Proses login menggunakan nama
     public function login(Request $request)
     {
-        $credentials = $request->validate([
-            'email' => ['required', 'email'],
+        $request->validate([
+            'name' => ['required', 'string'],
             'password' => ['required'],
         ]);
 
-        if (Auth::attempt($credentials)) {
+        $loginInput = trim($request->input('name'));
+        $password = $request->input('password');
+
+        // Coba autentikasi menggunakan nama (atau email sebagai alternatif)
+        if (Auth::attempt(['name' => $loginInput, 'password' => $password], $request->boolean('remember')) ||
+            Auth::attempt(['email' => $loginInput, 'password' => $password], $request->boolean('remember'))) {
             $request->session()->regenerate();
 
             return $this->redirectUserBasedOnRole();
         }
 
-        return back()->with('error', 'Email atau password salah. Silakan coba lagi.');
+        // Coba pencarian fleksibel (case-insensitive atau prefix nama seperti "Budi" untuk "Budi (Supir)")
+        $user = User::whereRaw('LOWER(name) = ?', [strtolower($loginInput)])
+            ->orWhereRaw('LOWER(email) = ?', [strtolower($loginInput)])
+            ->first();
+
+        if (!$user) {
+            $user = User::where('name', 'like', $loginInput . ' (%')->first();
+        }
+
+        if ($user && Hash::check($password, $user->password)) {
+            Auth::login($user, $request->boolean('remember'));
+            $request->session()->regenerate();
+
+            return $this->redirectUserBasedOnRole();
+        }
+
+        return back()->with('error', 'Nama atau password salah. Silakan coba lagi.')->withInput($request->only('name'));
     }
 
     // Proses Logout
@@ -55,9 +78,11 @@ class AuthController extends Controller
                 return redirect()->route('kantor.dashboard');
             case 'supir':
                 return redirect()->route('supir.dashboard');
+            case 'karyawan_gudang':
+                return redirect()->route('gudang.dashboard');
             default:
                 Auth::logout();
-                return redirect('/login')->with('error', 'Role tidak valid untuk akses login ini (Gudang gunakan Kiosk).');
+                return redirect('/login')->with('error', 'Role pengguna tidak valid.');
         }
     }
 }

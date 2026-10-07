@@ -22,6 +22,11 @@ class Attendance extends Model
         'lat_out',
         'lng_out',
         'photo_out',
+        'notes',
+        'is_overtime',
+        'overtime_minutes',
+        'overtime_reason',
+        'overtime_status'
     ];
 
     // Relasi balik ke User

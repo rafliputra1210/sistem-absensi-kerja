@@ -14,5 +14,8 @@ class OfficeSetting extends Model
         'office_lat',
         'office_lng',
         'radius_meter',
+        'start_time',
+        'end_time',
+        'min_overtime_minutes',
     ];
 }

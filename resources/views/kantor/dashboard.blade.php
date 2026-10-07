@@ -107,7 +107,7 @@
                             <i class="fas fa-check-circle text-xl text-blue-500"></i> Sudah Keluar
                         </button>
                     @elseif($todayAttendance)
-                        <button type="button" onclick="if(confirm('Apakah Anda yakin ingin absen keluar sekarang?')) document.getElementById('formAbsenOut').submit();" class="bg-red-500 hover:bg-red-600 text-white font-bold py-4 px-2 rounded-2xl shadow-lg transition text-sm sm:text-base flex flex-col items-center gap-1">
+                        <button type="button" onclick="document.getElementById('formAbsenOut')?.scrollIntoView({behavior: 'smooth'})" class="bg-red-500 hover:bg-red-600 text-white font-bold py-4 px-2 rounded-2xl shadow-lg transition text-sm sm:text-base flex flex-col items-center gap-1">
                             <i class="fas fa-sign-out-alt text-xl"></i> Absen Keluar
                         </button>
                     @else
@@ -118,8 +118,23 @@
                 </div>
             </form>
             
-            <form action="{{ route('kantor.clockout') }}" method="POST" id="formAbsenOut" class="hidden">@csrf</form>
+            @if($todayAttendance && !$todayAttendance->clock_out)
+            <form action="{{ route('kantor.clockout') }}" method="POST" id="formAbsenOut" class="mt-3 bg-gray-50 p-4 rounded-2xl border border-gray-200 text-left shadow-sm">
+                @csrf
+                <label class="flex items-center gap-2 text-sm font-bold text-gray-700 cursor-pointer">
+                    <input type="checkbox" name="claim_overtime" value="1" onchange="document.getElementById('boxAlasanLembur').classList.toggle('hidden')" class="w-4 h-4 rounded text-blue-600">
+                    <span>Klaim Lembur (Pulang lewat jam kerja)</span>
+                </label>
 
+                <div id="boxAlasanLembur" class="hidden mt-2">
+                    <input type="text" name="overtime_reason" placeholder="Tuliskan tugas lembur yang dikerjakan..." class="w-full text-sm border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500">
+                </div>
+
+                <button type="submit" onclick="return confirm('Apakah Anda yakin ingin melakukan absensi keluar sekarang?')" class="w-full mt-3 bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-4 rounded-xl shadow transition flex items-center justify-center gap-2">
+                    <i class="fas fa-sign-out-alt"></i> Absen Keluar Sekarang
+                </button>
+            </form>
+            @endif
             <hr class="my-4 border-gray-200">
 
             <!-- Tombol Buka Modal Izin -->

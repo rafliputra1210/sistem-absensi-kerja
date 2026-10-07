@@ -23,16 +23,31 @@ class AdminKaryawanController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
+            'name' => 'required|string|max:255|unique:users,name',
+            'email' => 'nullable|string|email|max:255|unique:users,email',
             'password' => 'required|string|min:6',
             'role' => 'required|in:karyawan_kantor,supir,karyawan_gudang',
             'pin_gudang' => 'required_if:role,karyawan_gudang|nullable|digits:6|unique:users,pin_gudang',
         ]);
 
+        $email = $request->email;
+        if (empty($email)) {
+            $slug = \Illuminate\Support\Str::slug($request->name, '');
+            if (empty($slug)) {
+                $slug = 'user' . time();
+            }
+            $email = $slug . '@perusahaan.com';
+            $baseEmail = $slug;
+            $counter = 1;
+            while (User::where('email', $email)->exists()) {
+                $email = $baseEmail . $counter . '@perusahaan.com';
+                $counter++;
+            }
+        }
+
         User::create([
             'name' => $request->name,
-            'email' => $request->email,
+            'email' => $email,
             'password' => Hash::make($request->password),
             'role' => $request->role,
             'pin_gudang' => $request->role === 'karyawan_gudang' ? $request->pin_gudang : null,
@@ -49,8 +64,8 @@ class AdminKaryawanController extends Controller
     public function update(Request $request, User $karyawan)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($karyawan->id)],
+            'name' => ['required', 'string', 'max:255', Rule::unique('users', 'name')->ignore($karyawan->id)],
+            'email' => ['nullable', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($karyawan->id)],
             'role' => 'required|in:karyawan_kantor,supir,karyawan_gudang',
             'pin_gudang' => [
                 'required_if:role,karyawan_gudang',
@@ -60,9 +75,18 @@ class AdminKaryawanController extends Controller
             ],
         ]);
 
+        $email = $request->email;
+        if (empty($email)) {
+            $email = $karyawan->email;
+            if (empty($email)) {
+                $slug = \Illuminate\Support\Str::slug($request->name, '');
+                $email = ($slug ?: 'user' . time()) . '@perusahaan.com';
+            }
+        }
+
         $data = [
             'name' => $request->name,
-            'email' => $request->email,
+            'email' => $email,
             'role' => $request->role,
             'pin_gudang' => $request->role === 'karyawan_gudang' ? $request->pin_gudang : null,
         ];

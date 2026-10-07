@@ -19,7 +19,7 @@
     <table class="w-full text-left border-collapse">
         <thead>
             <tr class="bg-gray-50 border-b border-gray-200">
-                <th class="p-4 font-bold text-gray-600">Nama</th>
+                <th class="p-4 font-bold text-gray-600">Nama (Login)</th>
                 <th class="p-4 font-bold text-gray-600">Email</th>
                 <th class="p-4 font-bold text-gray-600">Role / Divisi</th>
                 <th class="p-4 font-bold text-gray-600">PIN Gudang</th>

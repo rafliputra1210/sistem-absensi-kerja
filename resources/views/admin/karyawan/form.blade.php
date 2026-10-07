@@ -16,15 +16,10 @@
         @if($isEdit) @method('PUT') @endif
 
         <div class="mb-4">
-            <label class="block text-gray-700 font-bold mb-2">Nama Lengkap</label>
-            <input type="text" name="name" value="{{ old('name', $karyawan->name ?? '') }}" class="w-full px-3 py-2 border rounded-lg focus:ring focus:border-blue-300" required>
+            <label class="block text-gray-700 font-bold mb-2">Nama Lengkap (Digunakan untuk Login)</label>
+            <input type="text" name="name" value="{{ old('name', $karyawan->name ?? '') }}" class="w-full px-3 py-2 border rounded-lg focus:ring focus:border-blue-300" placeholder="Contoh: Budi Santoso" required>
+            <p class="text-xs text-gray-500 mt-1">Karyawan, supir, dan staf gudang akan menggunakan nama ini saat masuk ke sistem absensi.</p>
             @error('name') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-        </div>
-
-        <div class="mb-4">
-            <label class="block text-gray-700 font-bold mb-2">Email Login</label>
-            <input type="email" name="email" value="{{ old('email', $karyawan->email ?? '') }}" class="w-full px-3 py-2 border rounded-lg focus:ring focus:border-blue-300" required>
-            @error('email') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
         </div>
 
         <div class="mb-4">

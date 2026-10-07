@@ -43,6 +43,9 @@
             <a href="{{ route('admin.laporan.index') }}" class="block p-3 {{ request()->routeIs('admin.laporan.*') ? 'bg-blue-600 font-medium' : 'hover:bg-slate-800' }} rounded-lg transition">
                 📑 Rekapitulasi Laporan
             </a>
+            <a href="{{ route('admin.settings.index') }}" class="block p-3 {{ request()->routeIs('admin.settings.*') ? 'bg-blue-600 font-medium' : 'hover:bg-slate-800' }} rounded-lg transition">
+                ⚙️ Pengaturan Jam Kerja
+            </a>
         </nav>
         <div class="p-4 border-t border-slate-700">
             <form action="{{ route('logout') }}" method="POST">
