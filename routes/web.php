@@ -20,7 +20,7 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['role:karyawan_kantor'])->group(function () {
         Route::get('/kantor/dashboard', function() { return view('kantor.dashboard'); })->name('kantor.dashboard');
         Route::post('/kantor/clock-in', [AttendanceController::class, 'clockInKantor'])->name('kantor.clockin');
-        Route::post('/kantor/clock-out', [AttendanceController::class, 'clockOut'])->name('kantor.clockout');
+        Route::post('/kantor/clock-out', [AttendanceController::class, 'clockOutKantor'])->name('kantor.clockout');
         Route::post('/izin/store', [LeaveController::class, 'store'])->name('izin.store');
     });
 
@@ -28,7 +28,7 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['role:supir'])->group(function () {
         Route::get('/supir/dashboard', function() { return view('supir.dashboard'); })->name('supir.dashboard');
         Route::post('/supir/clock-in', [AttendanceController::class, 'clockInSupir'])->name('supir.clockin');
-        Route::post('/supir/clock-out', [AttendanceController::class, 'clockOut'])->name('supir.clockout');
+        Route::post('/supir/clock-out', [AttendanceController::class, 'clockOutSupir'])->name('supir.clockout');
     });
 
     // 3. Rute Khusus Admin/HR
