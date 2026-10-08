@@ -1,15 +1,20 @@
 @extends('layouts.admin')
 
 @section('content')
-<div class="mb-8 flex justify-between items-end">
+<div class="mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
     <div>
         <h1 class="text-3xl font-bold text-gray-800">Laporan & Rekapitulasi</h1>
         <p class="text-gray-500 mt-1">Filter dan tinjau data absensi seluruh karyawan.</p>
     </div>
-    <div>
-        <button class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2 shadow-sm transition" onclick="alert('Fitur Export Excel/CSV sedang disiapkan!')">
-            <i class="fas fa-file-excel"></i> Export Excel
-        </button>
+    <div class="flex items-center gap-2">
+        <a href="{{ route('admin.laporan.excel', request()->all()) }}" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 px-4 rounded-lg flex items-center gap-2 shadow-sm transition">
+            <i class="fas fa-file-excel text-lg"></i>
+            <span>Export Excel</span>
+        </a>
+        <a href="{{ route('admin.laporan.pdf', request()->all()) }}" target="_blank" class="bg-rose-600 hover:bg-rose-700 text-white font-semibold py-2.5 px-4 rounded-lg flex items-center gap-2 shadow-sm transition">
+            <i class="fas fa-file-pdf text-lg"></i>
+            <span>Export PDF</span>
+        </a>
     </div>
 </div>
 

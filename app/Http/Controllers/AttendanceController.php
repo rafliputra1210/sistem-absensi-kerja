@@ -203,8 +203,13 @@ class AttendanceController extends Controller
         $request->validate([
             'lat_in' => 'required|numeric',
             'lng_in' => 'required|numeric',
-            'photo_in' => 'required|image|max:5120', // Foto wajah/sekitar gudang
+            'photo_in' => 'nullable|image|max:5120', // Foto wajah/sekitar gudang
+            'photo_base64' => 'nullable|string',
         ]);
+
+        if (!$request->hasFile('photo_in') && !$request->filled('photo_base64')) {
+            return back()->with('error', 'Foto bukti absensi masuk gudang wajib diambil.');
+        }
 
         $user = Auth::user();
         $today = now()->toDateString();
@@ -213,7 +218,17 @@ class AttendanceController extends Controller
             return back()->with('error', 'Anda sudah melakukan absen masuk hari ini.');
         }
 
-        $photoPath = $request->file('photo_in')->store('absensi_gudang', 'public');
+        $photoPath = null;
+        if ($request->hasFile('photo_in')) {
+            $photoPath = $request->file('photo_in')->store('absensi_gudang', 'public');
+        } elseif ($request->filled('photo_base64')) {
+            $image = $request->photo_base64;
+            $image = preg_replace('/^data:image\/\w+;base64,/', '', $image);
+            $image = str_replace(' ', '+', $image);
+            $imageName = 'absensi_gudang/' . uniqid() . '.jpg';
+            Storage::disk('public')->put($imageName, base64_decode($image));
+            $photoPath = $imageName;
+        }
 
         $setting = OfficeSetting::first();
         $batasTelat = $setting && $setting->start_time ? substr($setting->start_time, 0, 5) : '08:00';
@@ -239,8 +254,14 @@ class AttendanceController extends Controller
         $request->validate([
             'lat_out' => 'required|numeric',
             'lng_out' => 'required|numeric',
-            'photo_out' => 'required|image|max:5120',
+            'photo_out' => 'nullable|image|max:5120',
+            'photo_base64' => 'nullable|string',
+            'notes' => 'nullable|string',
         ]);
+
+        if (!$request->hasFile('photo_out') && !$request->filled('photo_base64')) {
+            return back()->with('error', 'Foto bukti absensi keluar gudang wajib diambil.');
+        }
 
         $user = Auth::user();
         $today = now()->toDateString();
@@ -253,14 +274,27 @@ class AttendanceController extends Controller
             return back()->with('error', 'Anda sudah menyelesaikan absen hari ini.');
         }
 
-        $photoPath = $request->file('photo_out')->store('absensi_gudang', 'public');
+        $photoPath = null;
+        if ($request->hasFile('photo_out')) {
+            $photoPath = $request->file('photo_out')->store('absensi_gudang', 'public');
+        } elseif ($request->filled('photo_base64')) {
+            $image = $request->photo_base64;
+            $image = preg_replace('/^data:image\/\w+;base64,/', '', $image);
+            $image = str_replace(' ', '+', $image);
+            $imageName = 'absensi_gudang/' . uniqid() . '.jpg';
+            Storage::disk('public')->put($imageName, base64_decode($image));
+            $photoPath = $imageName;
+        }
 
-        $attendance->update([
+        $updateData = array_merge([
             'clock_out' => now()->toTimeString(),
             'lat_out' => $request->lat_out,
             'lng_out' => $request->lng_out,
             'photo_out' => $photoPath,
-        ]);
+            'notes' => $request->notes
+        ], $this->hitungLembur($request, $today));
+
+        $attendance->update($updateData);
 
         return back()->with('success', 'Absen Keluar (Gudang) berhasil. Hati-hati di jalan!');
     }

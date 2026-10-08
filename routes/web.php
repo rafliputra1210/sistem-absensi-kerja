@@ -47,9 +47,11 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('karyawan', AdminKaryawanController::class)->except(['show']);
         Route::get('/izin', [AdminController::class, 'approvalIzin'])->name('izin.index');
         Route::put('/izin/{id}', [AdminController::class, 'updateIzin'])->name('izin.update');
-        Route::get('/laporan', [AdminController::class, 'laporan'])->name('laporan.index');
         Route::get('/settings', [AdminSettingController::class, 'index'])->name('settings.index');
         Route::put('/settings', [AdminSettingController::class, 'update'])->name('settings.update');
+        Route::get('/laporan', [AdminController::class, 'laporan'])->name('laporan.index');
+        Route::get('/laporan/export-excel', [AdminController::class, 'exportExcel'])->name('laporan.excel');
+        Route::get('/laporan/export-pdf', [AdminController::class, 'exportPdf'])->name('laporan.pdf');
     });
 
 });

@@ -6,6 +6,8 @@ use App\Models\Attendance;
 use App\Models\User;
 use App\Models\Leave;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AdminController extends Controller
 {
@@ -164,30 +166,99 @@ class AdminController extends Controller
         $pesan = $request->status === 'approved' ? 'Izin berhasil disetujui.' : 'Izin telah ditolak.';
         return back()->with('success', $pesan);
     }
-    public function laporan(Request $request)
+    private function getFilteredQuery(Request $request)
     {
-        // Inisialisasi query dengan relasi user
-        $query = Attendance::with('user')->orderBy('date', 'desc');
+        $query = \App\Models\Attendance::with('user')->orderBy('date', 'desc');
 
-        // Filter Rentang Tanggal
         if ($request->filled('start_date')) {
             $query->whereDate('date', '>=', $request->start_date);
         }
         if ($request->filled('end_date')) {
             $query->whereDate('date', '<=', $request->end_date);
         }
-
-        // Filter Divisi
         if ($request->filled('divisi') && $request->divisi !== 'all') {
             $query->whereHas('user', function($q) use ($request) {
                 $q->where('role', $request->divisi);
             });
         }
 
-        // Ambil data dengan pagination (20 data per halaman)
-        $attendances = $query->paginate(20)->appends($request->all());
+        return $query;
+    }
 
+    /**
+     * Tampilan Halaman Laporan Web
+     */
+    public function laporan(Request $request)
+    {
+        $attendances = $this->getFilteredQuery($request)->paginate(20)->appends($request->all());
         return view('admin.laporan', compact('attendances'));
     }
-    
+
+    /**
+     * 1. Export ke Excel (CSV Format - Langsung terbuka di Microsoft Excel)
+     */
+    public function exportExcel(Request $request): StreamedResponse
+    {
+        $attendances = $this->getFilteredQuery($request)->get();
+        $fileName = 'Rekap_Absensi_' . now()->format('Y-m-d_His') . '.csv';
+
+        $headers = [
+            "Content-type"        => "text/csv; charset=UTF-8",
+            "Content-Disposition" => "attachment; filename=$fileName",
+            "Pragma"              => "no-cache",
+            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+            "Expires"             => "0"
+        ];
+
+        $callback = function() use ($attendances) {
+            $file = fopen('php://output', 'w');
+            
+            // Tambahkan BOM agar Microsoft Excel membaca karakter UTF-8 & pemisah kolom dengan rapi
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+
+            // Header Kolom Excel
+            fputcsv($file, [
+                'No', 'Tanggal', 'Nama Karyawan', 'Divisi', 
+                'Jam Masuk', 'Jam Keluar', 'Status Kehadiran', 
+                'Lembur (Menit)', 'Status Lembur', 'Catatan / Alasan Lembur'
+            ]);
+
+            foreach ($attendances as $index => $absen) {
+                $lemburDisetujui = ($absen->is_overtime && $absen->overtime_status === 'approved') ? $absen->overtime_minutes : 0;
+
+                fputcsv($file, [
+                    $index + 1,
+                    $absen->date,
+                    $absen->user->name ?? 'User Terhapus',
+                    strtoupper(str_replace('_', ' ', $absen->user->role ?? '-')),
+                    $absen->clock_in ?? '-',
+                    $absen->clock_out ?? '-',
+                    strtoupper($absen->status),
+                    $lemburDisetujui,
+                    $absen->is_overtime ? strtoupper($absen->overtime_status) : '-',
+                    $absen->overtime_reason ?? $absen->notes ?? '-'
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * 2. Export ke PDF Siap Cetak
+     */
+    public function exportPdf(Request $request)
+    {
+        $attendances = $this->getFilteredQuery($request)->get();
+        $startDate = $request->start_date ?? 'Awal';
+        $endDate = $request->end_date ?? 'Sekarang';
+        $divisi = $request->divisi ?? 'all';
+
+        $pdf = Pdf::loadView('admin.laporan_pdf', compact('attendances', 'startDate', 'endDate', 'divisi'))
+                  ->setPaper('a4', 'landscape'); // Landscape agar muat banyak kolom
+
+        return $pdf->download('Laporan_Absensi_' . now()->format('Y-m-d') . '.pdf');
+    }
 }

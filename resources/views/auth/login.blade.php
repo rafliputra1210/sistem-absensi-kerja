@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Sistem Absensi Terpadu</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Panggil Komponen PWA di sini -->
+    @include('components.pwa-head')
 </head>
 <body class="bg-gray-100 flex min-h-screen items-center justify-center p-4">
     

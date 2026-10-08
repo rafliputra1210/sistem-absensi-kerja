@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Koneksi Terputus - Absensi Kerja</title>
+    <style>
+        body { font-family: sans-serif; background: #f8fafc; color: #1e293b; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; text-align: center; padding: 20px; }
+        .card { background: white; padding: 30px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); max-width: 360px; }
+        h2 { margin-top: 0; color: #ef4444; }
+        p { color: #64748b; font-size: 14px; line-height: 1.5; }
+        button { margin-top: 15px; background: #2563eb; color: white; border: none; padding: 12px 24px; border-radius: 10px; font-weight: bold; cursor: pointer; width: 100%; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>📡 Anda Sedang Offline</h2>
+        <p>Sistem absensi membutuhkan koneksi internet untuk memvalidasi lokasi GPS dan mengirim foto kehadiran ke server.</p>
+        <button onclick="window.location.reload()">Coba Muat Ulang</button>
+    </div>
+</body>
+</html>

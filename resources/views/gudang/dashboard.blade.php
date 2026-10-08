@@ -76,20 +76,80 @@
                 <input type="hidden" name="{{ !$sudahMasuk ? 'lat_in' : 'lat_out' }}" id="lat">
                 <input type="hidden" name="{{ !$sudahMasuk ? 'lng_in' : 'lng_out' }}" id="lng">
 
-                <!-- Input Foto (Sama dengan Supir) -->
+                <!-- Input Kamera Live & Bukti Foto -->
                 <div class="mb-6">
-                    <label class="block text-gray-700 text-sm font-bold mb-2">
-                        Foto Wajah / Area Gudang
-                    </label>
-                    <label class="flex flex-col items-center justify-center w-full h-36 border-2 border-dashed border-emerald-300 rounded-xl cursor-pointer bg-emerald-50 hover:bg-emerald-100 overflow-hidden relative" id="photoArea">
-                        <div class="flex flex-col items-center justify-center text-emerald-700 z-10" id="photoPlaceholder">
-                            <i class="fas fa-camera text-4xl mb-2"></i>
-                            <p class="text-sm font-semibold">Buka Kamera</p>
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="block text-gray-700 text-sm font-bold">
+                            Foto Bukti (Wajah / Area Gudang)
+                        </label>
+                        <span id="cameraStatusBadge" class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 flex items-center gap-1">
+                            <i class="fas fa-camera"></i> Belum ada foto
+                        </span>
+                    </div>
+
+                    <!-- Viewport Kamera / Preview -->
+                    <div class="relative w-full h-64 bg-slate-900 rounded-xl overflow-hidden shadow-inner flex flex-col items-center justify-center border border-gray-300">
+                        <!-- Video Stream Langsung -->
+                        <video id="cameraVideo" autoplay playsinline muted class="w-full h-full object-cover hidden"></video>
+
+                        <!-- Gambar Hasil Jepretan -->
+                        <img id="imagePreview" class="w-full h-full object-cover hidden" alt="Preview Foto">
+
+                        <!-- Canvas Hidden untuk capture snapshot -->
+                        <canvas id="cameraCanvas" class="hidden"></canvas>
+
+                        <!-- Placeholder / Tombol Start Kamera -->
+                        <div id="cameraPlaceholder" class="flex flex-col items-center justify-center p-4 text-center z-10 text-white">
+                            <div class="w-14 h-14 rounded-full bg-white/10 flex items-center justify-center mb-3">
+                                <i class="fas fa-camera text-2xl text-emerald-400"></i>
+                            </div>
+                            <p class="text-sm font-bold text-gray-100">Kamera Belum Aktif</p>
+                            <p class="text-xs text-gray-400 mt-1 max-w-[220px]">Aktifkan kamera untuk selfie atau foto area gudang</p>
+                            <button type="button" id="btnStartCamera" onclick="startCamera()" class="mt-3 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-bold py-2.5 px-4 rounded-xl shadow-md transition flex items-center gap-2">
+                                <i class="fas fa-video"></i> Aktifkan Kamera
+                            </button>
                         </div>
-                        <img id="imagePreview" class="hidden absolute inset-0 w-full h-full object-cover z-20">
-                        <input type="file" name="{{ !$sudahMasuk ? 'photo_in' : 'photo_out' }}" accept="image/*" capture="user" class="hidden" id="photoInput" required onchange="previewImage(event)" />
-                    </label>
+
+                        <!-- Kontrol Kamera saat Aktif (Overlay) -->
+                        <div id="cameraActiveControls" class="absolute inset-0 flex flex-col justify-between p-3 hidden pointer-events-none z-20">
+                            <div class="flex justify-end pointer-events-auto">
+                                <button type="button" onclick="switchCamera()" class="bg-black/60 hover:bg-black/80 text-white text-xs px-3 py-1.5 rounded-full backdrop-blur-sm transition flex items-center gap-1.5 shadow">
+                                    <i class="fas fa-sync-alt"></i> Ganti Kamera
+                                </button>
+                            </div>
+                            <div class="flex justify-center pb-1 pointer-events-auto">
+                                <button type="button" onclick="takeSnapshot()" class="bg-white hover:bg-gray-100 text-emerald-600 w-14 h-14 rounded-full shadow-2xl flex items-center justify-center border-4 border-emerald-500/40 transition transform active:scale-90" title="Jepret Foto">
+                                    <i class="fas fa-circle text-2xl"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Kontrol Setelah Foto Diambil (Overlay) -->
+                        <div id="cameraRetakeControls" class="absolute bottom-3 right-3 hidden z-20">
+                            <button type="button" onclick="retakePhoto()" class="bg-black/75 hover:bg-black/90 text-white text-xs font-bold py-2 px-3.5 rounded-xl backdrop-blur-sm shadow transition flex items-center gap-1.5">
+                                <i class="fas fa-redo"></i> Foto Ulang
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Hidden Input Base64 -->
+                    <input type="hidden" name="photo_base64" id="photoBase64">
+
+                    <!-- Fallback / Opsi Alternatif: Unggah File / Galeri -->
+                    <div class="mt-3 pt-3 border-t border-gray-100">
+                        <label class="block text-[11px] font-semibold text-gray-500 mb-1">
+                            Atau pilih foto dari galeri / file perangkat:
+                        </label>
+                        <input type="file" name="{{ !$sudahMasuk ? 'photo_in' : 'photo_out' }}" id="photoFileInput" accept="image/*" class="w-full text-xs text-gray-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 border border-gray-200 rounded-xl p-1 bg-gray-50" onchange="handleFileSelect(event)">
+                    </div>
                 </div>
+
+                @if($sudahMasuk)
+                <div class="mb-6">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Catatan Tugas / Serah Terima Shift (Opsional)</label>
+                    <textarea name="notes" rows="2" class="w-full border-gray-300 rounded-xl shadow-sm py-2 px-3 border focus:ring-emerald-500 text-sm" placeholder="Contoh: Stok opname rak C selesai, shift diserahkan..."></textarea>
+                </div>
+                @endif
 
                 <button type="submit" id="btnAbsen" class="w-full text-white font-bold text-lg py-4 rounded-xl shadow-lg transition transform opacity-50 cursor-not-allowed {{ $buttonClass }}" disabled>
                     {{ $buttonText }}
@@ -150,15 +210,149 @@
     <script>
         function toggleModal(modalID) { document.getElementById(modalID).classList.toggle('hidden'); }
 
-        function previewImage(event) {
+        let currentFacingMode = 'user'; // 'user' (depan) atau 'environment' (belakang)
+        let currentStream = null;
+        let hasGps = false;
+        let hasPhoto = false;
+
+        const cameraVideo = document.getElementById('cameraVideo');
+        const imagePreview = document.getElementById('imagePreview');
+        const cameraCanvas = document.getElementById('cameraCanvas');
+        const cameraPlaceholder = document.getElementById('cameraPlaceholder');
+        const cameraActiveControls = document.getElementById('cameraActiveControls');
+        const cameraRetakeControls = document.getElementById('cameraRetakeControls');
+        const photoBase64 = document.getElementById('photoBase64');
+        const photoFileInput = document.getElementById('photoFileInput');
+        const cameraStatusBadge = document.getElementById('cameraStatusBadge');
+        const btnAbsen = document.getElementById('btnAbsen');
+
+        // Update status tombol submit absensi
+        function updateSubmitButton() {
+            if (!btnAbsen) return;
+            if (hasGps && hasPhoto) {
+                btnAbsen.disabled = false;
+                btnAbsen.classList.remove('opacity-50', 'cursor-not-allowed');
+            } else {
+                btnAbsen.disabled = true;
+                btnAbsen.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        // --- 1. FITUR KAMERA LIVE ---
+        async function startCamera(facing = currentFacingMode) {
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+            }
+
+            try {
+                let constraints = {
+                    video: {
+                        facingMode: facing,
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    },
+                    audio: false
+                };
+
+                let stream;
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia(constraints);
+                } catch (e) {
+                    stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                }
+
+                currentStream = stream;
+                cameraVideo.srcObject = stream;
+                cameraVideo.classList.remove('hidden');
+                imagePreview.classList.add('hidden');
+                cameraPlaceholder.classList.add('hidden');
+                cameraActiveControls.classList.remove('hidden');
+                cameraRetakeControls.classList.add('hidden');
+
+                cameraStatusBadge.className = 'text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 flex items-center gap-1';
+                cameraStatusBadge.innerHTML = '<i class="fas fa-video"></i> Kamera Aktif';
+
+            } catch (err) {
+                console.error('Kamera gagal diakses:', err);
+                alert('Kamera tidak dapat diakses. Pastikan izin kamera browser telah diberikan.');
+                cameraStatusBadge.className = 'text-[11px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-700 flex items-center gap-1';
+                cameraStatusBadge.innerHTML = '<i class="fas fa-exclamation-circle"></i> Izin Ditolak';
+            }
+        }
+
+        async function switchCamera() {
+            currentFacingMode = (currentFacingMode === 'user') ? 'environment' : 'user';
+            await startCamera(currentFacingMode);
+        }
+
+        function takeSnapshot() {
+            if (!cameraVideo || !cameraVideo.videoWidth) return;
+
+            cameraCanvas.width = cameraVideo.videoWidth;
+            cameraCanvas.height = cameraVideo.videoHeight;
+            const ctx = cameraCanvas.getContext('2d');
+            ctx.drawImage(cameraVideo, 0, 0, cameraCanvas.width, cameraCanvas.height);
+
+            const dataUrl = cameraCanvas.toDataURL('image/jpeg', 0.85);
+            photoBase64.value = dataUrl;
+
+            imagePreview.src = dataUrl;
+            imagePreview.classList.remove('hidden');
+            cameraVideo.classList.add('hidden');
+            cameraActiveControls.classList.add('hidden');
+            cameraRetakeControls.classList.remove('hidden');
+
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+                currentStream = null;
+            }
+
+            hasPhoto = true;
+            cameraStatusBadge.className = 'text-[11px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700 flex items-center gap-1';
+            cameraStatusBadge.innerHTML = '<i class="fas fa-check-circle"></i> Foto Siap';
+
+            updateSubmitButton();
+        }
+
+        function retakePhoto() {
+            photoBase64.value = '';
+            imagePreview.classList.add('hidden');
+            cameraRetakeControls.classList.add('hidden');
+            hasPhoto = false;
+
+            cameraStatusBadge.className = 'text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 flex items-center gap-1';
+            cameraStatusBadge.innerHTML = '<i class="fas fa-camera"></i> Belum ada foto';
+
+            updateSubmitButton();
+            startCamera(currentFacingMode);
+        }
+
+        function handleFileSelect(event) {
             const input = event.target;
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    document.getElementById('imagePreview').src = e.target.result;
-                    document.getElementById('imagePreview').classList.remove('hidden');
-                    document.getElementById('photoPlaceholder').classList.add('hidden');
-                }
+                    if (currentStream) {
+                        currentStream.getTracks().forEach(track => track.stop());
+                        currentStream = null;
+                    }
+
+                    cameraPlaceholder.classList.add('hidden');
+                    cameraVideo.classList.add('hidden');
+                    cameraActiveControls.classList.add('hidden');
+
+                    imagePreview.src = e.target.result;
+                    imagePreview.classList.remove('hidden');
+                    cameraRetakeControls.classList.remove('hidden');
+
+                    photoBase64.value = '';
+                    hasPhoto = true;
+
+                    cameraStatusBadge.className = 'text-[11px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700 flex items-center gap-1';
+                    cameraStatusBadge.innerHTML = '<i class="fas fa-check-circle"></i> Foto Terpilih';
+
+                    updateSubmitButton();
+                };
                 reader.readAsDataURL(input.files[0]);
             }
         }
@@ -182,12 +376,13 @@
                     if(marker) map.removeLayer(marker);
                     marker = L.marker([lat, lng]).addTo(map).bindPopup("Lokasi Gudang Terdeteksi").openPopup();
 
-                    let btn = document.getElementById('btnAbsen');
-                    btn.disabled = false;
-                    btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    hasGps = true;
+                    updateSubmitButton();
                 }, 
                 function(error) {
                     document.getElementById('gpsStatus').innerHTML = `<span class="text-red-600"><i class="fas fa-times-circle"></i> Gagal GPS</span>`;
+                    hasGps = false;
+                    updateSubmitButton();
                 }, 
                 { enableHighAccuracy: true, timeout: 5000 }
             );
