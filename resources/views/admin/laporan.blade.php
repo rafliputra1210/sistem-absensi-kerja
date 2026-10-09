@@ -64,6 +64,7 @@
                     <th class="p-4 font-bold">Jam Keluar</th>
                     <th class="p-4 font-bold text-center">Status</th>
                     <th class="p-4 font-bold text-center">Validasi</th>
+                    <th class="p-4 font-bold text-center">Foto Bukti</th>
                 </tr>
             </thead>
             <tbody>
@@ -119,10 +120,34 @@
                             <span title="Kiosk PIN / Otomatis">PIN/Tap</span>
                         @endif
                     </td>
+                    <td class="p-4 text-center">
+                        <div class="flex justify-center items-center gap-2">
+                            @php
+                                $photoIn = $absen->photo_in ? (str_starts_with($absen->photo_in, 'data:image') || str_starts_with($absen->photo_in, 'http') ? $absen->photo_in : asset('storage/' . $absen->photo_in)) : null;
+                                $photoOut = $absen->photo_out ? (str_starts_with($absen->photo_out, 'data:image') || str_starts_with($absen->photo_out, 'http') ? $absen->photo_out : asset('storage/' . $absen->photo_out)) : null;
+                            @endphp
+
+                            @if($photoIn)
+                                <button type="button" onclick="bukaFoto('{{ $photoIn }}', 'Foto Masuk - {{ addslashes($absen->user->name ?? 'User') }}')" class="bg-blue-100 text-blue-700 hover:bg-blue-200 px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 shadow-sm" title="Lihat Foto Masuk">
+                                    <i class="fas fa-sign-in-alt"></i> Masuk
+                                </button>
+                            @endif
+
+                            @if($photoOut)
+                                <button type="button" onclick="bukaFoto('{{ $photoOut }}', 'Foto Keluar - {{ addslashes($absen->user->name ?? 'User') }}')" class="bg-red-100 text-red-700 hover:bg-red-200 px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 shadow-sm" title="Lihat Foto Keluar">
+                                    <i class="fas fa-sign-out-alt"></i> Keluar
+                                </button>
+                            @endif
+
+                            @if(!$photoIn && !$photoOut)
+                                <span class="text-gray-400 text-xs italic">-</span>
+                            @endif
+                        </div>
+                    </td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="7" class="p-8 text-center text-gray-500">
+                    <td colspan="8" class="p-8 text-center text-gray-500">
                         <div class="flex flex-col items-center">
                             <i class="fas fa-folder-open text-4xl text-gray-300 mb-3"></i>
                             <p>Tidak ada data absensi yang ditemukan pada rentang/filter ini.</p>
@@ -139,4 +164,51 @@
         {{ $attendances->links() }}
     </div>
 </div>
+
+<!-- Modal Preview Foto -->
+<div id="modalFoto" class="fixed inset-0 bg-gray-900 bg-opacity-75 z-50 hidden flex items-center justify-center transition-opacity p-4">
+    <div class="bg-white rounded-2xl shadow-2xl overflow-hidden w-full max-w-lg transform transition-transform scale-95 relative p-4">
+        
+        <!-- Header Modal -->
+        <div class="flex justify-between items-center mb-4 border-b pb-2">
+            <h3 id="modalTitle" class="text-lg font-bold text-gray-800">Preview Foto</h3>
+            <button onclick="tutupFoto()" class="text-gray-400 hover:text-red-500 transition text-2xl leading-none">
+                &times;
+            </button>
+        </div>
+
+        <!-- Gambar -->
+        <div class="flex justify-center bg-gray-100 rounded-xl overflow-hidden border border-gray-200" style="min-height: 300px;">
+            <img id="modalImage" src="" alt="Foto Bukti Absensi" class="max-w-full max-h-[70vh] object-contain">
+        </div>
+
+        <!-- Tombol Tutup -->
+        <div class="mt-4 flex justify-end">
+            <button onclick="tutupFoto()" class="bg-gray-800 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-xl transition">
+                Tutup
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Script Control Modal -->
+<script>
+    function bukaFoto(imageUrl, title) {
+        document.getElementById('modalImage').src = imageUrl;
+        document.getElementById('modalTitle').innerText = title;
+        document.getElementById('modalFoto').classList.remove('hidden');
+    }
+
+    function tutupFoto() {
+        document.getElementById('modalFoto').classList.add('hidden');
+        document.getElementById('modalImage').src = ""; // Clear memori gambar
+    }
+
+    // Tutup modal jika mengklik area hitam (background)
+    document.getElementById('modalFoto').addEventListener('click', function(e) {
+        if (e.target === this) {
+            tutupFoto();
+        }
+    });
+</script>
 @endsection
