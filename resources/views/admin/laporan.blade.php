@@ -6,12 +6,12 @@
         <h1 class="text-3xl font-bold text-gray-800">Laporan & Rekapitulasi</h1>
         <p class="text-gray-500 mt-1">Filter dan tinjau data absensi seluruh karyawan.</p>
     </div>
-    <div class="flex items-center gap-2">
-        <a href="{{ route('admin.laporan.excel', request()->all()) }}" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 px-4 rounded-lg flex items-center gap-2 shadow-sm transition">
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto mt-4 sm:mt-0">
+        <a href="{{ route('admin.laporan.excel', request()->all()) }}" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 px-4 rounded-lg flex justify-center items-center gap-2 shadow-sm transition w-full sm:w-auto">
             <i class="fas fa-file-excel text-lg"></i>
             <span>Export Excel</span>
         </a>
-        <a href="{{ route('admin.laporan.pdf', request()->all()) }}" target="_blank" class="bg-rose-600 hover:bg-rose-700 text-white font-semibold py-2.5 px-4 rounded-lg flex items-center gap-2 shadow-sm transition">
+        <a href="{{ route('admin.laporan.pdf', request()->all()) }}" target="_blank" class="bg-rose-600 hover:bg-rose-700 text-white font-semibold py-2.5 px-4 rounded-lg flex justify-center items-center gap-2 shadow-sm transition w-full sm:w-auto">
             <i class="fas fa-file-pdf text-lg"></i>
             <span>Export PDF</span>
         </a>
@@ -38,12 +38,12 @@
                 <option value="karyawan_gudang" {{ request('divisi') == 'karyawan_gudang' ? 'selected' : '' }}>Karyawan Gudang</option>
             </select>
         </div>
-        <div class="w-full md:w-auto flex gap-2">
-            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow-sm transition">
+        <div class="w-full md:w-auto flex flex-col sm:flex-row gap-2">
+            <button type="submit" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow-sm transition justify-center">
                 Filter
             </button>
             @if(request()->has('start_date') || request()->has('end_date') || (request()->has('divisi') && request('divisi') !== 'all'))
-                <a href="{{ route('admin.laporan.index') }}" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded-lg shadow-sm transition">
+                <a href="{{ route('admin.laporan.index') }}" class="w-full sm:w-auto bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded-lg shadow-sm transition flex justify-center items-center">
                     Reset
                 </a>
             @endif
